@@ -3,104 +3,104 @@
   "guildId": "1562098175047639110",
   "channelId": "1562101523624755293",
   "messageId": "",
-  "embedColor": "#39FF14",
-  "updateIntervalSeconds": 60,
+  "embedColor": "#22C55E",
+  "updateIntervalSeconds": 30,
   "roles": [
     {
       "id": "role-00",
       "name": "00",
       "badgeEmoji": "👑",
-      "color": "#39FF14",
+      "color": "#E5B869",
       "level": 1,
-      "description": "LIDERANÇA SUPREMA"
+      "description": "Liderança Suprema"
     },
     {
       "id": "role-01",
       "name": "01",
       "badgeEmoji": "⭐",
-      "color": "#32CD32",
+      "color": "#D4AF37",
       "level": 2,
-      "description": "SUB-LÍDER / BRAÇO DIREITO"
+      "description": "Sub-Líder / Braço Direito"
     },
     {
       "id": "role-02",
       "name": "02",
       "badgeEmoji": "🛡️",
-      "color": "#2E8B57",
+      "color": "#3B82F6",
       "level": 3,
-      "description": "CONSELHO"
+      "description": "Conselho"
     },
     {
       "id": "role-03",
       "name": "03",
       "badgeEmoji": "🎖️",
-      "color": "#00FFAA",
+      "color": "#60A5FA",
       "level": 4,
-      "description": "AUDITORIA / GERÊNCIA EXECUTIVA"
+      "description": "Auditoria / Gerência Executiva"
     },
     {
       "id": "role-gerente-geral",
       "name": "Gerente geral",
       "badgeEmoji": "💼",
-      "color": "#00C853",
+      "color": "#A855F7",
       "level": 5,
-      "description": "GERENTE GERAL"
+      "description": "Gerência Geral"
     },
     {
       "id": "role-gerente-farm",
       "name": "Gerente de farm",
       "badgeEmoji": "🌾",
-      "color": "#008F5A",
+      "color": "#10B981",
       "level": 6,
-      "description": "GERENTE DE FARM"
+      "description": "Gerente de Farm & Recursos"
     },
     {
       "id": "role-gerente-acao",
       "name": "Gerente de ação",
       "badgeEmoji": "⚔️",
-      "color": "#00A86B",
+      "color": "#EF4444",
       "level": 7,
-      "description": "GERENTE DE AÇÃO"
+      "description": "Gerente de Ação / PvP"
     },
     {
       "id": "role-elite",
       "name": "Elite",
       "badgeEmoji": "⚜️",
-      "color": "#66FF66",
+      "color": "#EC4899",
       "level": 8,
-      "description": "ELITE"
+      "description": "Membros de Elite"
     },
     {
       "id": "role-supervisor",
       "name": "Supervisor",
       "badgeEmoji": "👁️",
-      "color": "#7CFC00",
+      "color": "#F59E0B",
       "level": 9,
-      "description": "SUPERVISOR"
+      "description": "Supervisão"
     },
     {
       "id": "role-membro",
       "name": "Membro",
       "badgeEmoji": "🥋",
-      "color": "#90A890",
+      "color": "#64748B",
       "level": 10,
-      "description": "MEMBRO OFICIAL"
+      "description": "Membro Oficial"
     },
     {
       "id": "role-morador",
       "name": "Morador",
       "badgeEmoji": "🏠",
-      "color": "#6B8E23",
+      "color": "#71717A",
       "level": 11,
-      "description": "MORADOR"
+      "description": "Morador"
     },
     {
       "id": "role-entroza",
       "name": "entroza",
       "badgeEmoji": "🌱",
-      "color": "#556B2F",
+      "color": "#52525B",
       "level": 12,
-      "description": "NOVATO / PERÍODO DE TESTE"
+      "description": "Novato / Período de Teste"
     }
   ]
 }
