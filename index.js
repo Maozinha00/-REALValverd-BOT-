@@ -1,8 +1,3 @@
-/**
- * BOT DE HIERARQUIA AUTOMATIZADA - FACÇÃO REALValverd
- * Sem banner na mensagem, com verificação de cargos em tempo real.
- */
-
 require('dotenv').config();
 const { 
   Client, 
@@ -15,15 +10,14 @@ const {
 const fs = require('fs');
 const path = require('path');
 
-// Carregar configuração de cargos
 const configPath = path.join(__dirname, 'config.json');
 let config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
 
-// Inicializar cliente com Server Members Intent
+// Inicialização com os intents necessários
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMembers, // Obrigatório: Ativar Server Members Intent no Developer Portal!
+    GatewayIntentBits.GuildMembers, // Certifique-se de que Server Members Intent está ativo no Developer Portal!
     GatewayIntentBits.GuildMessages,
   ],
 });
@@ -42,33 +36,57 @@ function saveMessageId(msgId) {
 }
 
 /**
- * Monta o painel limpo (sem banner)
+ * Monta o painel oficial da REALValverd com o layout solicitado
  */
 async function buildHierarchyEmbed(guild) {
   await guild.members.fetch();
 
   const embed = new EmbedBuilder()
-    .setColor(config.embedColor || '#D4AF37')
-    .setTitle('👑 HIERARQUIA OFICIAL • ' + config.factionName)
+    .setColor(config.embedColor || '#22C55E')
+    .setTitle('👑 REALVALVERD • PAINEL DE HIERARQUIA ⚔️')
     .setDescription(
-      '**PAINEL DE CARGOS & MEMBROS**\n' +
-      'Sincronizado automaticamente pelo bot.\n' +
-      'Qualquer alteração de cargo no Discord é atualizada instantaneamente.\n\n' +
-      '──────────────────────────────────────'
+      '```ansi\n' +
+      '\x1b[1;32m╔══════════════════════════════════════╗\n' +
+      '          👑 REALVALVERD 👑\n' +
+      '       ⚔️ PAINEL DE HIERARQUIA ⚔️\n' +
+      '╚══════════════════════════════════════╝\x1b[0m\n\n' +
+      '       🔥 DISCIPLINA • UNIÃO • RESPEITO 🔥\n' +
+      '             💚 PODER • LEALDADE 💚\n' +
+      '```\n' +
+      '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
     )
     .setTimestamp()
     .setFooter({ 
-      text: `${config.factionName} System • Atualização Automática`, 
+      text: '💚 REALVALVERD 💚 • ⚔️ MAIS QUE UMA FACÇÃO, UMA FAMÍLIA ⚔️', 
       iconURL: guild.iconURL({ dynamic: true }) || undefined 
     });
 
   let totalFactionMembers = 0;
   const countedMemberIds = new Set();
 
-  for (const roleDef of config.roles) {
-    // Busca o cargo pelo nome exato (ou ID caso configurado)
+  const roleTitleMap = {
+    '00': '👑  00  ┃ LIDERANÇA SUPREMA',
+    '01': '⭐  01  ┃ SUB-LÍDER / BRAÇO DIREITO',
+    '02': '🛡️  02  ┃ CONSELHO',
+    '03': '🎖️  03  ┃ AUDITORIA / GERÊNCIA EXECUTIVA',
+    'gerente geral': '💼  ┃ GERENTE GERAL',
+    'gerente de farm': '🌾  ┃ GERENTE DE FARM',
+    'gerente de ação': '⚔️  ┃ GERENTE DE AÇÃO',
+    'gerente de acao': '⚔️  ┃ GERENTE DE AÇÃO',
+    'elite': '⚜️  ┃ ELITE',
+    'supervisor': '👁️  ┃ SUPERVISOR',
+    'membro': '🥋  ┃ MEMBRO',
+    'morador': '🏠  ┃ MORADOR',
+    'entroza': '🌱  ┃ ENTROZA',
+  };
+
+  for (let i = 0; i < config.roles.length; i++) {
+    const roleDef = config.roles[i];
+    const roleKey = roleDef.name.toLowerCase().trim();
+
+    // Busca cargo pelo ID (se houver) ou pelo nome exato no servidor
     const discordRole = guild.roles.cache.find(
-      (r) => r.id === roleDef.discordRoleId || r.name.toLowerCase().trim() === roleDef.name.toLowerCase().trim()
+      (r) => r.id === roleDef.discordRoleId || r.name.toLowerCase().trim() === roleKey
     );
 
     let membersInRole = [];
@@ -78,11 +96,12 @@ async function buildHierarchyEmbed(guild) {
 
     membersInRole.forEach((m) => countedMemberIds.add(m.id));
 
-    const roleTitle = `${roleDef.badgeEmoji} [${roleDef.name.toUpperCase()}] • (${membersInRole.length})`;
-    
+    const formattedTitle = roleTitleMap[roleKey] || `${roleDef.badgeEmoji}  ${roleDef.name.toUpperCase()}`;
+    const roleTitle = `${formattedTitle}  (${membersInRole.length})`;
+
     let membersListString = '';
     if (membersInRole.length === 0) {
-      membersListString = '*Nenhum membro ativo neste cargo.*';
+      membersListString = '> *Nenhum membro vinculado.*';
     } else {
       membersListString = membersInRole
         .map((m) => {
@@ -97,21 +116,46 @@ async function buildHierarchyEmbed(guild) {
       value: membersListString,
       inline: false,
     });
+
+    // Separador entre cúpula e gerência
+    if (roleKey === '03') {
+      embed.addFields({
+        name: '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+        value: '\u200b',
+        inline: false,
+      });
+    }
   }
 
   totalFactionMembers = countedMemberIds.size;
 
-  embed.addFields({
-    name: '📊 ESTATÍSTICAS DA FACÇÃO',
-    value: `👥 **Total de Membros:** ${totalFactionMembers}\n🛡️ **Cargos Cadastrados:** ${config.roles.length}\n⚡ **Status do Bot:** Online & Monitorando`,
-    inline: false,
-  });
+  embed.addFields(
+    {
+      name: '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+      value: '\u200b',
+      inline: false,
+    },
+    {
+      name: '📊  CENTRAL DA FACÇÃO',
+      value: 
+        `👥 **Total de membros:** ${totalFactionMembers}\n` +
+        `🛡️ **Cargos cadastrados:** ${config.roles.length}\n` +
+        '🤖 **Sistema:** ONLINE\n' +
+        '🔄 **Sincronização automática de cargos:** ATIVADA',
+      inline: false,
+    },
+    {
+      name: '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+      value: '```yaml\n💚 REALVALVERD 💚\n⚔️ MAIS QUE UMA FACÇÃO, UMA FAMÍLIA ⚔️\n```',
+      inline: false,
+    }
+  );
 
   return embed;
 }
 
 /**
- * Envia ou edita a mensagem no canal especificado
+ * Atualiza ou envia o painel
  */
 async function updateHierarchyPanel(reason = 'Rotina') {
   if (isUpdating) return;
@@ -120,12 +164,6 @@ async function updateHierarchyPanel(reason = 'Rotina') {
   try {
     const guildId = process.env.GUILD_ID || config.guildId;
     const channelId = process.env.CHANNEL_ID || config.channelId;
-
-    if (!guildId || !channelId) {
-      console.warn('[AVISO] Configure GUILD_ID e CHANNEL_ID no .env ou config.json.');
-      isUpdating = false;
-      return;
-    }
 
     const guild = await client.guilds.fetch(guildId).catch(() => null);
     if (!guild) {
@@ -136,7 +174,7 @@ async function updateHierarchyPanel(reason = 'Rotina') {
 
     const channel = await guild.channels.fetch(channelId).catch(() => null);
     if (!channel || !channel.isTextBased()) {
-      console.error(`[ERRO] Canal ${channelId} não encontrado.`);
+      console.error(`[ERRO] Canal ${channelId} não encontrado ou sem permissão de texto.`);
       isUpdating = false;
       return;
     }
@@ -150,13 +188,13 @@ async function updateHierarchyPanel(reason = 'Rotina') {
         .setStyle(ButtonStyle.Secondary)
     );
 
-    // Se já existe mensagem anterior enviada pelo bot, apenas edita ela
+    // Se a mensagem já existe, apenas edita (sem poluir o chat)
     if (hierarchyMessageId) {
       try {
         const existingMessage = await channel.messages.fetch(hierarchyMessageId).catch(() => null);
         if (existingMessage) {
           await existingMessage.edit({ embeds: [embed], components: [refreshButton] });
-          console.log(`[AUTO-SYNC] Painel atualizado! Motivo: ${reason}`);
+          console.log(`[AUTO-SYNC] Painel atualizado com sucesso! Motivo: ${reason}`);
           isUpdating = false;
           return;
         }
@@ -165,10 +203,10 @@ async function updateHierarchyPanel(reason = 'Rotina') {
       }
     }
 
-    // Envia nova mensagem caso não exista
+    // Se não existir mensagem prévia, envia uma nova
     const newMessage = await channel.send({ embeds: [embed], components: [refreshButton] });
     saveMessageId(newMessage.id);
-    console.log(`[AUTO-SYNC] Novo painel criado com sucesso! ID: ${newMessage.id}`);
+    console.log(`[AUTO-SYNC] Novo painel publicado no canal! ID: ${newMessage.id}`);
   } catch (error) {
     console.error('[ERRO] Falha ao atualizar painel:', error);
   } finally {
@@ -177,50 +215,46 @@ async function updateHierarchyPanel(reason = 'Rotina') {
 }
 
 // -------------------------------------------------------------
-// EVENTOS DO DISCORD
+// EVENTOS DO BOT
 // -------------------------------------------------------------
 
 client.once('ready', async () => {
   console.log('=====================================================');
   console.log(`🤖 Bot REALValverd conectado como: ${client.user.tag}`);
-  console.log('⚡ Verificação automática de cargos: ATIVA');
+  console.log('⚡ Monitoramento automático de cargos ATIVADO');
   console.log('=====================================================');
 
   await updateHierarchyPanel('Inicialização do Bot');
 
-  // Intervalo de checagem de segurança a cada 30 segundos
   setInterval(() => {
-    updateHierarchyPanel('Checagem Periódica');
+    updateHierarchyPanel('Checagem Periódica de Segurança');
   }, (config.updateIntervalSeconds || 30) * 1000);
 });
 
-/**
- * DETECTA ADIÇÃO OU REMOÇÃO DE CARGOS EM TEMPO REAL
- */
+// Detecta adições ou remoções de cargos no servidor
 client.on('guildMemberUpdate', async (oldMember, newMember) => {
   const oldRoles = oldMember.roles.cache;
   const newRoles = newMember.roles.cache;
 
-  const addedRoles = newRoles.filter((role) => !oldRoles.has(role.id));
-  const removedRoles = oldRoles.filter((role) => !newRoles.has(role.id));
+  const added = newRoles.filter((r) => !oldRoles.has(r.id));
+  const removed = oldRoles.filter((r) => !newRoles.has(r.id));
 
-  if (addedRoles.size > 0 || removedRoles.size > 0) {
-    const factionRoleNames = config.roles.map((r) => r.name.toLowerCase().trim());
-    
-    const isRelevantRole = [...addedRoles.values(), ...removedRoles.values()].some((r) =>
-      factionRoleNames.includes(r.name.toLowerCase().trim()) ||
+  if (added.size > 0 || removed.size > 0) {
+    const roleNames = config.roles.map((r) => r.name.toLowerCase().trim());
+    const isRelevant = [...added.values(), ...removed.values()].some((r) =>
+      roleNames.includes(r.name.toLowerCase().trim()) ||
       config.roles.some((cfg) => cfg.discordRoleId === r.id)
     );
 
-    if (isRelevantRole) {
-      console.log(`[AUTO-VERIFICAÇÃO] Alteração de cargo em @${newMember.user.tag}`);
+    if (isRelevant) {
+      console.log(`[AUTO-VERIFICAÇÃO] Cargo alterado em @${newMember.user.tag}. Atualizando painel...`);
       await updateHierarchyPanel(`Cargo alterado em @${newMember.user.tag}`);
     }
   }
 });
 
 client.on('guildMemberRemove', async (member) => {
-  console.log(`[AUTO-VERIFICAÇÃO] Membro saiu do Discord: ${member.user.tag}`);
+  console.log(`[AUTO-VERIFICAÇÃO] Membro saiu do servidor: ${member.user.tag}`);
   await updateHierarchyPanel(`Membro saiu: ${member.user.tag}`);
 });
 
@@ -232,7 +266,7 @@ client.on('guildMemberAdd', async (member) => {
 client.on('interactionCreate', async (interaction) => {
   if (interaction.isButton() && interaction.customId === 'btn_refresh_panel') {
     await interaction.deferUpdate();
-    await updateHierarchyPanel(`Atualização manual solicitada por @${interaction.user.tag}`);
+    await updateHierarchyPanel(`Clique no botão por @${interaction.user.tag}`);
   }
 });
 
