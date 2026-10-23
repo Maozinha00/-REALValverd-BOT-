@@ -17,7 +17,7 @@ let config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMembers, // Certifique-se de que Server Members Intent está ativo no Developer Portal!
+    GatewayIntentBits.GuildMembers, // Certifique-se de que "Server Members Intent" está ativo no Discord Developer Portal!
     GatewayIntentBits.GuildMessages,
   ],
 });
@@ -64,6 +64,7 @@ async function buildHierarchyEmbed(guild) {
   let totalFactionMembers = 0;
   const countedMemberIds = new Set();
 
+  // MAPEAMENTO COMPLETO DE TODOS OS CARGOS (Incluindo as 5 gerências)
   const roleTitleMap = {
     '00': '👑  00  ┃ LIDERANÇA SUPREMA',
     '01': '⭐  01  ┃ SUB-LÍDER / BRAÇO DIREITO',
@@ -71,8 +72,11 @@ async function buildHierarchyEmbed(guild) {
     '03': '🎖️  03  ┃ AUDITORIA / GERÊNCIA EXECUTIVA',
     'gerente geral': '💼  ┃ GERENTE GERAL',
     'gerente de farm': '🌾  ┃ GERENTE DE FARM',
+    'gerente de vendas': '💰  ┃ GERENTE DE VENDAS',
     'gerente de ação': '⚔️  ┃ GERENTE DE AÇÃO',
     'gerente de acao': '⚔️  ┃ GERENTE DE AÇÃO',
+    'gerente de rec': '📋  ┃ GERENTE DE REC',
+    'gerente de recrutamento': '📋  ┃ GERENTE DE REC',
     'elite': '⚜️  ┃ ELITE',
     'supervisor': '👁️  ┃ SUPERVISOR',
     'membro': '🥋  ┃ MEMBRO',
@@ -84,9 +88,9 @@ async function buildHierarchyEmbed(guild) {
     const roleDef = config.roles[i];
     const roleKey = roleDef.name.toLowerCase().trim();
 
-    // Busca cargo pelo ID (se houver) ou pelo nome exato no servidor
+    // Busca cargo pelo ID numérico (se houver) ou pelo nome exato no servidor
     const discordRole = guild.roles.cache.find(
-      (r) => r.id === roleDef.discordRoleId || r.name.toLowerCase().trim() === roleKey
+      (r) => (roleDef.discordRoleId && r.id === roleDef.discordRoleId) || r.name.toLowerCase().trim() === roleKey
     );
 
     let membersInRole = [];
@@ -231,7 +235,7 @@ client.once('ready', async () => {
   }, (config.updateIntervalSeconds || 30) * 1000);
 });
 
-// Detecta adições ou remoções de cargos no servidor
+// Detecta adições ou remoções de cargos no servidor em tempo real
 client.on('guildMemberUpdate', async (oldMember, newMember) => {
   const oldRoles = oldMember.roles.cache;
   const newRoles = newMember.roles.cache;
@@ -263,6 +267,7 @@ client.on('guildMemberAdd', async (member) => {
   await updateHierarchyPanel(`Novo membro: ${member.user.tag}`);
 });
 
+// Responde ao clique do botão no Discord
 client.on('interactionCreate', async (interaction) => {
   if (interaction.isButton() && interaction.customId === 'btn_refresh_panel') {
     await interaction.deferUpdate();
