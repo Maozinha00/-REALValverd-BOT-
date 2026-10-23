@@ -5,6 +5,9 @@
   "messageId": "",
   "embedColor": "#22C55E",
   "updateIntervalSeconds": 30,
+  "embedTitle": "👑 HIERARQUIA OFICIAL — REALVALVERD",
+  "embedDescription": "Quadro atualizado em tempo real da liderança, gerência e membros da facção REALValverd no Discord e FiveM.",
+  "footerText": "REALValverd • Sincronização Automática • Bot Oficial",
   "roles": [
     {
       "id": "role-00",
@@ -13,7 +16,8 @@
       "badgeEmoji": "👑",
       "color": "#E5B869",
       "level": 1,
-      "description": "Liderança Suprema"
+      "description": "Liderança Suprema",
+      "memberCount": 1
     },
     {
       "id": "role-01",
@@ -22,7 +26,8 @@
       "badgeEmoji": "⭐",
       "color": "#D4AF37",
       "level": 2,
-      "description": "Sub-Líder / Braço Direito"
+      "description": "Sub-Líder / Braço Direito",
+      "memberCount": 2
     },
     {
       "id": "role-02",
@@ -31,7 +36,8 @@
       "badgeEmoji": "🛡️",
       "color": "#3B82F6",
       "level": 3,
-      "description": "Conselho"
+      "description": "Conselho",
+      "memberCount": 2
     },
     {
       "id": "role-03",
@@ -40,7 +46,8 @@
       "badgeEmoji": "🎖️",
       "color": "#60A5FA",
       "level": 4,
-      "description": "Auditoria / Gerência Executiva"
+      "description": "Auditoria / Gerência Executiva",
+      "memberCount": 1
     },
     {
       "id": "role-gerente-geral",
@@ -49,25 +56,48 @@
       "badgeEmoji": "💼",
       "color": "#A855F7",
       "level": 5,
-      "description": "Gerência Geral"
+      "description": "Gerência Geral",
+      "memberCount": 3
     },
     {
       "id": "role-gerente-farm",
       "name": "Gerente de farm",
-      "discordRoleId": "",
+      "discordRoleId": "1562105429444530287",
       "badgeEmoji": "🌾",
       "color": "#10B981",
       "level": 6,
-      "description": "Gerente de Farm & Recursos"
+      "description": "Gerente de Farm & Recursos",
+      "memberCount": 0
+    },
+    {
+      "id": "role-gerente-vendas",
+      "name": "Gerente de vendas",
+      "discordRoleId": "1562113240995987456",
+      "badgeEmoji": "💰",
+      "color": "#F59E0B",
+      "level": 7,
+      "description": "Gerente de Vendas & Comércio",
+      "memberCount": 0
     },
     {
       "id": "role-gerente-acao",
       "name": "Gerente de ação",
-      "discordRoleId": "",
+      "discordRoleId": "1562105514069069954",
       "badgeEmoji": "⚔️",
       "color": "#EF4444",
-      "level": 7,
-      "description": "Gerente de Ação / PvP"
+      "level": 8,
+      "description": "Gerente de Ação / PvP",
+      "memberCount": 0
+    },
+    {
+      "id": "role-gerente-rec",
+      "name": "Gerente De Rec",
+      "discordRoleId": "1562934936103551057",
+      "badgeEmoji": "📋",
+      "color": "#8B5CF6",
+      "level": 9,
+      "description": "Gerente de Recrutamento & RH",
+      "memberCount": 2
     },
     {
       "id": "role-elite",
@@ -75,17 +105,19 @@
       "discordRoleId": "",
       "badgeEmoji": "⚜️",
       "color": "#EC4899",
-      "level": 8,
-      "description": "Membros de Elite"
+      "level": 10,
+      "description": "Membros de Elite",
+      "memberCount": 5
     },
     {
       "id": "role-supervisor",
       "name": "Supervisor",
       "discordRoleId": "",
       "badgeEmoji": "👁️",
-      "color": "#F59E0B",
-      "level": 9,
-      "description": "Supervisão"
+      "color": "#06B6D4",
+      "level": 11,
+      "description": "Supervisão",
+      "memberCount": 3
     },
     {
       "id": "role-membro",
@@ -93,8 +125,9 @@
       "discordRoleId": "",
       "badgeEmoji": "🥋",
       "color": "#64748B",
-      "level": 10,
-      "description": "Membro Oficial"
+      "level": 12,
+      "description": "Membro Oficial",
+      "memberCount": 14
     },
     {
       "id": "role-morador",
@@ -102,8 +135,9 @@
       "discordRoleId": "",
       "badgeEmoji": "🏠",
       "color": "#71717A",
-      "level": 11,
-      "description": "Morador"
+      "level": 13,
+      "description": "Morador",
+      "memberCount": 8
     },
     {
       "id": "role-entroza",
@@ -111,8 +145,9 @@
       "discordRoleId": "",
       "badgeEmoji": "🌱",
       "color": "#52525B",
-      "level": 12,
-      "description": "Novato / Período de Teste"
+      "level": 14,
+      "description": "Novato / Período de Teste",
+      "memberCount": 4
     }
   ]
 }
