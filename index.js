@@ -5,7 +5,10 @@ const {
   EmbedBuilder, 
   ActionRowBuilder, 
   ButtonBuilder, 
-  ButtonStyle 
+  ButtonStyle,
+  ModalBuilder,
+  TextInputBuilder,
+  TextInputStyle
 } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
@@ -17,23 +20,26 @@ let config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMembers, // Certifique-se de que "Server Members Intent" está ativo no Discord Developer Portal!
+    GatewayIntentBits.GuildMembers,      // Ative "Server Members Intent" no Discord Developer Portal!
     GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildMessageReactions,
   ],
 });
 
 let hierarchyMessageId = process.env.MESSAGE_ID || config.messageId || null;
 let isUpdating = false;
 
-function saveMessageId(msgId) {
-  hierarchyMessageId = msgId;
-  config.messageId = msgId;
+function saveConfig() {
   try {
     fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
   } catch (err) {
     console.error('Erro ao salvar config.json:', err);
   }
 }
+
+// =============================================================
+// 1. SISTEMA DE HIERARQUIA OFICIAL REALVALVERD
+// =============================================================
 
 /**
  * Monta o painel oficial da REALValverd com o layout solicitado
@@ -64,7 +70,6 @@ async function buildHierarchyEmbed(guild) {
   let totalFactionMembers = 0;
   const countedMemberIds = new Set();
 
-  // MAPEAMENTO COMPLETO DE TODOS OS CARGOS (Incluindo as 5 gerências)
   const roleTitleMap = {
     '00': '👑  00  ┃ LIDERANÇA SUPREMA',
     '01': '⭐  01  ┃ SUB-LÍDER / BRAÇO DIREITO',
@@ -159,7 +164,7 @@ async function buildHierarchyEmbed(guild) {
 }
 
 /**
- * Atualiza ou envia o painel
+ * Atualiza ou envia o painel de hierarquia
  */
 async function updateHierarchyPanel(reason = 'Rotina') {
   if (isUpdating) return;
@@ -178,7 +183,7 @@ async function updateHierarchyPanel(reason = 'Rotina') {
 
     const channel = await guild.channels.fetch(channelId).catch(() => null);
     if (!channel || !channel.isTextBased()) {
-      console.error(`[ERRO] Canal ${channelId} não encontrado ou sem permissão de texto.`);
+      console.error(`[ERRO] Canal de Hierarquia ${channelId} não encontrado ou sem permissão.`);
       isUpdating = false;
       return;
     }
@@ -192,50 +197,115 @@ async function updateHierarchyPanel(reason = 'Rotina') {
         .setStyle(ButtonStyle.Secondary)
     );
 
-    // Se a mensagem já existe, apenas edita (sem poluir o chat)
     if (hierarchyMessageId) {
       try {
         const existingMessage = await channel.messages.fetch(hierarchyMessageId).catch(() => null);
         if (existingMessage) {
           await existingMessage.edit({ embeds: [embed], components: [refreshButton] });
-          console.log(`[AUTO-SYNC] Painel atualizado com sucesso! Motivo: ${reason}`);
+          console.log(`[AUTO-SYNC] Painel de Hierarquia atualizado! Motivo: ${reason}`);
           isUpdating = false;
           return;
         }
       } catch (err) {
-        console.log('[INFO] Mensagem anterior não encontrada, enviando uma nova...');
+        console.log('[INFO] Mensagem anterior de hierarquia não encontrada, criando nova...');
       }
     }
 
-    // Se não existir mensagem prévia, envia uma nova
     const newMessage = await channel.send({ embeds: [embed], components: [refreshButton] });
-    saveMessageId(newMessage.id);
-    console.log(`[AUTO-SYNC] Novo painel publicado no canal! ID: ${newMessage.id}`);
+    hierarchyMessageId = newMessage.id;
+    config.messageId = newMessage.id;
+    saveConfig();
+    console.log(`[AUTO-SYNC] Novo painel de hierarquia publicado! ID: ${newMessage.id}`);
   } catch (error) {
-    console.error('[ERRO] Falha ao atualizar painel:', error);
+    console.error('[ERRO] Falha ao atualizar hierarquia:', error);
   } finally {
     isUpdating = false;
   }
 }
 
-// -------------------------------------------------------------
-// EVENTOS DO BOT
-// -------------------------------------------------------------
+// =============================================================
+// 2. SISTEMA DE SUGESTÕES (PAINEL + FORMULÁRIO + VOTAÇÃO 👍 / ❌)
+// =============================================================
+
+/**
+ * Publica ou mantém o painel fixo de sugestões no canal: 1562101766353330226
+ */
+async function setupSuggestionPanel(guild) {
+  try {
+    const panelChannelId = process.env.SUGGESTION_PANEL_CHANNEL_ID || config.suggestionPanelChannelId || '1562101766353330226';
+    const channel = await guild.channels.fetch(panelChannelId).catch(() => null);
+
+    if (!channel || !channel.isTextBased()) {
+      console.error(`[ERRO] Canal do Painel de Sugestões (${panelChannelId}) não encontrado.`);
+      return;
+    }
+
+    const embed = new EmbedBuilder()
+      .setColor('#22C55E')
+      .setTitle('💡 REALVALVERD • CENTRAL DE SUGESTÕES 📋')
+      .setDescription(
+        '**Tem alguma ideia ou melhoria para a nossa facção?**\n\n' +
+        '• Sugestões de **ações, invasões e estratégias de PvP**\n' +
+        '• Ideias de **farm, rotas e metas de recursos**\n' +
+        '• Recrutamento, regras e melhorias internas\n\n' +
+        '👇 **Clique no botão abaixo** para abrir o formulário. Sua sugestão será postada automaticamente no canal de votação para a tropa avaliar com 👍 e ❌!'
+      )
+      .setFooter({ 
+        text: '💚 REALVALVERD 💚 • A voz de cada membro constrói nosso império',
+        iconURL: guild.iconURL({ dynamic: true }) || undefined
+      })
+      .setTimestamp();
+
+    const actionRow = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId('btn_open_suggestion_modal')
+        .setLabel('💡 Enviar Sugestão')
+        .setStyle(ButtonStyle.Success)
+    );
+
+    if (config.suggestionPanelMessageId) {
+      const existing = await channel.messages.fetch(config.suggestionPanelMessageId).catch(() => null);
+      if (existing) {
+        await existing.edit({ embeds: [embed], components: [actionRow] });
+        console.log('✅ Painel fixo de sugestões sincronizado com sucesso!');
+        return;
+      }
+    }
+
+    const panelMsg = await channel.send({ embeds: [embed], components: [actionRow] });
+    config.suggestionPanelMessageId = panelMsg.id;
+    saveConfig();
+    console.log(`✅ Novo Painel de Sugestões criado no canal! ID: ${panelMsg.id}`);
+  } catch (err) {
+    console.error('Erro ao configurar painel de sugestões:', err);
+  }
+}
+
+// =============================================================
+// 3. EVENTOS DO BOT
+// =============================================================
 
 client.once('ready', async () => {
   console.log('=====================================================');
   console.log(`🤖 Bot REALValverd conectado como: ${client.user.tag}`);
-  console.log('⚡ Monitoramento automático de cargos ATIVADO');
+  console.log('⚡ Monitoramento da Hierarquia: ATIVADO');
+  console.log('💡 Painel de Sugestões com Votação (👍 / ❌): ATIVADO');
   console.log('=====================================================');
 
-  await updateHierarchyPanel('Inicialização do Bot');
+  const guildId = process.env.GUILD_ID || config.guildId;
+  const guild = await client.guilds.fetch(guildId).catch(() => null);
+
+  if (guild) {
+    await updateHierarchyPanel('Inicialização do Bot');
+    await setupSuggestionPanel(guild);
+  }
 
   setInterval(() => {
     updateHierarchyPanel('Checagem Periódica de Segurança');
   }, (config.updateIntervalSeconds || 30) * 1000);
 });
 
-// Detecta adições ou remoções de cargos no servidor em tempo real
+// Atualizações de cargos em tempo real
 client.on('guildMemberUpdate', async (oldMember, newMember) => {
   const oldRoles = oldMember.roles.cache;
   const newRoles = newMember.roles.cache;
@@ -258,7 +328,7 @@ client.on('guildMemberUpdate', async (oldMember, newMember) => {
 });
 
 client.on('guildMemberRemove', async (member) => {
-  console.log(`[AUTO-VERIFICAÇÃO] Membro saiu do servidor: ${member.user.tag}`);
+  console.log(`[AUTO-VERIFICAÇÃO] Membro saiu: ${member.user.tag}`);
   await updateHierarchyPanel(`Membro saiu: ${member.user.tag}`);
 });
 
@@ -267,11 +337,104 @@ client.on('guildMemberAdd', async (member) => {
   await updateHierarchyPanel(`Novo membro: ${member.user.tag}`);
 });
 
-// Responde ao clique do botão no Discord
+// Interações: Botões e Formulário Modal
 client.on('interactionCreate', async (interaction) => {
-  if (interaction.isButton() && interaction.customId === 'btn_refresh_panel') {
-    await interaction.deferUpdate();
-    await updateHierarchyPanel(`Clique no botão por @${interaction.user.tag}`);
+  try {
+    // 1. Botão de atualizar painel de hierarquia
+    if (interaction.isButton() && interaction.customId === 'btn_refresh_panel') {
+      await interaction.deferUpdate();
+      await updateHierarchyPanel(`Clique no botão por @${interaction.user.tag}`);
+      return;
+    }
+
+    // 2. Botão de abrir modal de sugestão no canal 1562101766353330226
+    if (interaction.isButton() && interaction.customId === 'btn_open_suggestion_modal') {
+      const modal = new ModalBuilder()
+        .setCustomId('modal_submit_suggestion')
+        .setTitle('💡 Enviar Sugestão — REALValverd');
+
+      const titleInput = new TextInputBuilder()
+        .setCustomId('input_suggestion_title')
+        .setLabel('Título ou Assunto da Sugestão')
+        .setPlaceholder('Ex: Novo horário de farm coletivo de coletes')
+        .setStyle(TextInputStyle.Short)
+        .setMinLength(5)
+        .setMaxLength(100)
+        .setRequired(true);
+
+      const descriptionInput = new TextInputBuilder()
+        .setCustomId('input_suggestion_desc')
+        .setLabel('Descreva sua ideia em detalhes')
+        .setPlaceholder('Explique como sua sugestão vai fortalecer a facção...')
+        .setStyle(TextInputStyle.Paragraph)
+        .setMinLength(15)
+        .setMaxLength(1000)
+        .setRequired(true);
+
+      modal.addComponents(
+        new ActionRowBuilder().addComponents(titleInput),
+        new ActionRowBuilder().addComponents(descriptionInput)
+      );
+
+      await interaction.showModal(modal);
+      return;
+    }
+
+    // 3. Recebe o envio da sugestão e posta no canal 1562101028277457047 com 👍 e ❌
+    if (interaction.isModalSubmit() && interaction.customId === 'modal_submit_suggestion') {
+      const title = interaction.fields.getTextInputValue('input_suggestion_title');
+      const description = interaction.fields.getTextInputValue('input_suggestion_desc');
+
+      const targetChannelId = process.env.SUGGESTION_FEED_CHANNEL_ID || config.suggestionTargetChannelId || '1562101028277457047';
+      const targetChannel = await interaction.guild.channels.fetch(targetChannelId).catch(() => null);
+
+      if (!targetChannel || !targetChannel.isTextBased()) {
+        await interaction.reply({
+          content: '❌ Erro: O canal de votação de sugestões não foi encontrado ou está sem permissão.',
+          ephemeral: true,
+        });
+        return;
+      }
+
+      // Monta o Embed formatado da sugestão
+      const suggestionEmbed = new EmbedBuilder()
+        .setColor('#22C55E')
+        .setTitle('💡 NOVA SUGESTÃO REGISTRADA')
+        .setAuthor({
+          name: `${interaction.user.displayName || interaction.user.username} (@${interaction.user.tag})`,
+          iconURL: interaction.user.displayAvatarURL({ dynamic: true }),
+        })
+        .addFields(
+          { name: '📌 Assunto', value: title, inline: false },
+          { name: '📝 Sugestão', value: description, inline: false },
+          { name: '👤 Autor', value: `<@${interaction.user.id}>`, inline: true },
+          { name: '🟡 Status', value: '`Em Votação Pública`', inline: true }
+        )
+        .setFooter({
+          text: `REALValverd • Votação Popular • ID do Autor: ${interaction.user.id}`,
+        })
+        .setTimestamp();
+
+      // Envia no canal de votação
+      const suggestionMessage = await targetChannel.send({ embeds: [suggestionEmbed] });
+
+      // Adiciona as reações 👍 (joia) e ❌ (x) para a galera votar
+      await suggestionMessage.react('👍');
+      await suggestionMessage.react('❌');
+
+      // Resposta privada para quem enviou
+      await interaction.reply({
+        content: `✅ **Sua sugestão foi enviada com sucesso!**\nEla foi publicada no canal <#${targetChannelId}> para a tropa votar com 👍 ou ❌.`,
+        ephemeral: true,
+      });
+
+      console.log(`[SUGESTÃO] Sugestão de @${interaction.user.tag} enviada para o canal de votação!`);
+    }
+  } catch (err) {
+    console.error('Erro na interação:', err);
+    if (!interaction.replied && !interaction.deferred) {
+      await interaction.reply({ content: '❌ Ocorreu um erro ao processar sua ação.', ephemeral: true }).catch(() => {});
+    }
   }
 });
 
