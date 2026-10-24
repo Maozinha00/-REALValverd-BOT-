@@ -5,9 +5,12 @@
   "messageId": "",
   "embedColor": "#22C55E",
   "updateIntervalSeconds": 30,
-  "embedTitle": "👑 HIERARQUIA OFICIAL — REALVALVERD",
-  "embedDescription": "Quadro atualizado em tempo real da liderança, gerência e membros da facção REALValverd no Discord e FiveM.",
-  "footerText": "REALValverd • Sincronização Automática • Bot Oficial",
+  "embedTitle": "👑 REALVALVERD • PAINEL DE HIERARQUIA ⚔️",
+  "embedDescription": "Quadro atualizado em tempo real da liderança, gerência e membros da facção REALValverd.",
+  "footerText": "💚 REALVALVERD 💚 • ⚔️ MAIS QUE UMA FACÇÃO, UMA FAMÍLIA ⚔️",
+  "suggestionPanelChannelId": "1562101766353330226",
+  "suggestionTargetChannelId": "1562101028277457047",
+  "suggestionPanelMessageId": "",
   "roles": [
     {
       "id": "role-00",
